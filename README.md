@@ -1,0 +1,2 @@
+# BinaryAutoencoder
+RandomWeights

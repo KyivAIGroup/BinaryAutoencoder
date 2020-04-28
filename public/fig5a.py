@@ -2,7 +2,6 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import binom
 from scipy.special import comb
 import matplotlib as mpl
 
@@ -18,8 +17,6 @@ mpl.rcParams['savefig.format'] = 'pdf'
 mpl.rcParams['font.size'] = 18
 mpl.rcParams['legend.fontsize'] = 18
 mpl.rcParams['figure.titlesize'] = 20
-
-
 
 N_x = 50
 N_y = 200

@@ -1,5 +1,3 @@
-## It seems that i were wrond somewhere. Need to redo compuatational experiments
-
 # Get error vs a_y for thresholding
 # Paper version
 
@@ -138,11 +136,7 @@ x = generate_random_vector(N_x, a_x)
 for i in range(iters):
     w = generate_random_matrix(N_y, N_x, a_w)
     print(i)
-    # a_y_range_dt[i], error_kwta[i] = get_error_kwta(x, w)
     a_y_range_thr[i], error_threshold[i] = get_error_theta(x, w)
-    # _, error_omp[i] = get_omp_opt(x, w)
-    # plt.plot( a_y_range_thr[i]/ N_y, error_threshold[i]/ N_x)
-
 
 print(np.mean(error_threshold, axis=0))
 print(np.std(error_threshold, axis=0))
@@ -150,10 +144,6 @@ print(np.std(error_threshold, axis=0))
 print(np.mean(a_y_range_thr, axis=0))
 print(np.std(a_y_range_thr, axis=0))
 
-# quit()
-# plt.plot(a_y_range / N_y, np.mean(error_kwta, axis=0) / N_x, label='kwta')
-# plt.plot(a_y_range_omp / N_y, np.mean(error_omp, axis=0) / N_x, label='omp')
-# plt.plot(np.mean(a_y_range_thr, axis=0) / N_y, np.mean(error_threshold, axis=0) / N_x, linestyle='-', marker='o', color='k', label='threshold')
 plt.errorbar(np.mean(a_y_range_thr, axis=0)/ N_y, np.mean(error_threshold, axis=0)/ N_x,
              yerr=np.std(error_threshold, axis=0)/ N_x, xerr=np.std(a_y_range_thr, axis=0)/ N_y,
              ecolor='#1f77b4', elinewidth=1.5, label='threshold', fmt='k-o')
@@ -161,7 +151,6 @@ plt.xlabel(r'$s_y$')
 plt.ylabel('Error')
 plt.xlim([0, 1])
 plt.ylim([0, 1])
-# plt.legend()
 plt.savefig('figures/error_vs_ay_theta', bbox_inches='tight')
 plt.show()
 

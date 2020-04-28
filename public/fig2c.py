@@ -1,5 +1,3 @@
-## It seems that i were wrond somewhere. Need to redo compuatational experiments
-
 # Calculate min_error vs a_x kwta thresh omp
 # Paper version
 
@@ -65,7 +63,6 @@ def get_min_error_kwta(x, w):
         x_r = kWTA2(w.T @ y, a_x_optimal)
         # x_r = kWTA2(w.T @ y, a_x)
         error_kwta[i] = np.dot(x, (1 - x_r)) + np.dot(x_r, (1 - x))
-    # print(error_kwta)
     return a_y_range[np.argmin(error_kwta)],  np.min(error_kwta)
 
 
@@ -107,10 +104,7 @@ def get_min_omp(x, w):
             error_kwta2[j] = np.dot(x, (1 - x_r)) + np.dot(x_r, (1 - x))
         a_x_optimal = a_x_range[np.argmin(error_kwta2)]
         x_r = kWTA2(w.T @ y, a_x_optimal)
-        # r = 5 * x - x_r
         r = 2 * x - x_r
-        # r =  x - x_r
-        # error[k] = np.sum(np.abs(r))
         error[k] = np.dot(x, (1 - x_r)) + np.dot(x_r, (1 - x))
     return np.argmin(error) + 1, np.min(error)
 
@@ -119,7 +113,6 @@ def get_min_omp(x, w):
 N_x = 50
 N_y = 150
 
-# a_x = 20
 a_w = 30
 
 

@@ -1,5 +1,5 @@
 # Similarity preservation tests
-# Calculate mean average precision
+# Calculate mean average precision vs Ny
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -17,8 +17,8 @@ mpl.rcParams['figure.dpi'] = 80
 mpl.rcParams['savefig.dpi'] = 800
 mpl.rcParams['savefig.format'] = 'pdf'
 
-mpl.rcParams['font.size'] = 24
-mpl.rcParams['legend.fontsize'] = 24
+mpl.rcParams['font.size'] = 22
+mpl.rcParams['legend.fontsize'] = 22
 mpl.rcParams['figure.titlesize'] = 14
 
 
@@ -105,7 +105,7 @@ def cosine(x, x_r):
 def get_theta(x, w, ti):
     return (w @ x >= ti).astype(int)
 
-def get_overlap_theta(w, ti, num_closest):
+def get_overlap_theta(w, ti, num_closest, N_y):
     num_select = 50
     inds_to_select = np.random.choice(num_load, num_select, replace=False)
     # X_train = X[:num_select]
@@ -118,6 +118,7 @@ def get_overlap_theta(w, ti, num_closest):
     Y = np.zeros((num_load, N_y))
     for i, xi in enumerate(X):
         Y[i] = get_theta(xi, w, ti)
+        # Y[i] = get_kwta(xi, w, ti)
 
     Y_train = Y[inds_to_select]
 
@@ -142,110 +143,41 @@ def get_overlap_theta(w, ti, num_closest):
 
 
 
-def get_overlap(w, a_y, num_closest):
-    num_select = 100
-    inds_to_select = np.random.choice(num_load, num_select, replace=False)
-    # X_train = X[:num_select]
-    X_train = X[inds_to_select]
-    inds_closest = np.zeros((num_select, num_load))
-    for i, x in enumerate(X_train):
-        inds_closest[i] = np.argsort(np.sum((X - x) ** 2, axis=1)).astype(int)
-        # inds_closest[i] = np.argsort([cosine(X[j], x) for j in range(num_load)])[::-1]
-    # print('done input')
-    Y = np.zeros((num_load, N_y))
-    Y_omp = np.zeros((num_load, N_y))
-    for i, xi in enumerate(X):
-        Y[i] = get_kwta(xi, w, a_y)
-        Y_omp[i] = get_omp(xi, w, a_y)
-
-    # print('done kwta')
-    # Y_train = Y[:num_select]
-    Y_train = Y[inds_to_select]
-
-    inds_closest_y = np.zeros((num_select, num_load))
-    inds_closest_y_omp = np.zeros((num_select, num_load))
-    for i, y in enumerate(Y_train):
-        inds_closest_y[i] = np.argsort(np.sum(np.abs(Y - y), axis=1))
-        inds_closest_y_omp[i] = np.argsort(np.sum(np.abs(Y_omp - y), axis=1))
-        # inds_closest_y[i] = np.argsort([cosine(Y[j], y) for j in range(num_load)])[::-1]
-        # inds_closest_y_omp[i] = np.argsort([cosine(Y_omp[j], y) for j in range(num_load)])[::-1]
-    # print('done output')
-    overlap = np.zeros(num_select)
-
-    map = np.zeros(num_select)
-    map_omp = np.zeros(num_select)
-    for u in range(num_select):
-        inds_true = inds_closest[u][:num_closest]
-        inds_pred = inds_closest_y[u][:num_closest]
-        inds_pred_omp = inds_closest_y_omp[u][:num_closest]
-        prec = np.zeros(num_closest)
-        prec_omp = np.zeros(num_closest)
-        s = 1
-        for k, xi in enumerate(inds_pred):
-            if xi in inds_true:
-                prec[k] = s
-                s += 1
-        s = 1
-        for k, xi in enumerate(inds_pred_omp):
-            if xi in inds_true:
-                prec_omp[k] = s
-                s += 1
-        map[u] = np.mean(prec / np.arange(1, num_closest+1))
-        map_omp[u] = np.mean(prec_omp / np.arange(1, num_closest+1))
-    # print('done overlap')
-    return np.mean(map), np.mean(map_omp)
-
-
 num_load = 1000
 N_x = 50
-N_y = 500
+N_y = 4000
 a_w = 30
 a_x = 20
 
 X = generate_random_matrix(num_load, N_x, a_x)
 # X = generate_random_matrix_var_ax(num_load, N_x, 10, 40)
 
-a_y_range = np.arange(1, N_y, 9)
+a_y_range = np.arange(10, N_y-10, 50)
 # a_y_range = np.arange(100, 101, 100)
 
 num_closest = 20
-iters = 10
+iters = 1
 overlap = np.zeros((iters, a_y_range.size))
 overlap_omp = np.zeros((iters, a_y_range.size))
 import time
 t = time.process_time()
 
-
+N_y_range = np.arange(100, 3000, 500)
 theta_range = np.arange(1, np.min([a_x, a_w]) + 1)[::-1]
-a_y_theta = np.zeros((iters, theta_range.size))
-overlap_theta = np.zeros((iters, theta_range.size))
+a_y_theta = np.zeros((iters, N_y_range.size))
+overlap_theta = np.zeros((iters, N_y_range.size))
 for i in range(iters):
-    w = generate_random_matrix(N_y, N_x, a_w)
-    # w = generate_random_matrix_var_ax(N_y, N_x, a_w)
-    # w = np.random.rand(N_y, N_x)
     print(i)
-    for k, ti in enumerate(theta_range):
-        a_y_theta[i, k], overlap_theta[i, k] = get_overlap_theta(w, ti, num_closest)
-        print(ti, a_y_theta[i, k])
-    # for j, ai in enumerate(a_y_range):
-    #     print(ai)
-    #     overlap[i, j], overlap_omp[i, j] = get_overlap(w, ai, num_closest)
-
-print(a_y_theta)
-# print(overlap)
-print(np.mean(overlap, axis=0))
-print(np.mean(overlap_omp, axis=0))
-# print(np.std(overlap, axis=0))
+    for k, ni in enumerate(N_y_range):
+        w = generate_random_matrix(ni, N_x, a_w)
+        a_y_theta[i, k], overlap_theta[i, k] = get_overlap_theta(w, 13, num_closest, ni)
+        # use the threshold 13 since it gives closest sparsity level to 0.5. See next printed result
+        print(ni, a_y_theta[i, k] / ni)
 
 elapsed_time = time.process_time() - t
 print('Time: ', elapsed_time)
-plt.plot(a_y_range / N_y, np.mean(overlap, axis=0), '-d', label='kwta')
-plt.plot(a_y_range/ N_y, np.mean(overlap_omp, axis=0), '-v', label='bmp')
-plt.plot(np.mean(a_y_theta, axis=0) / N_y, np.mean(overlap_theta, axis=0), '--o', label='threshold')
+plt.plot(N_y_range / N_x, np.mean(overlap_theta, axis=0), '--o', label='theta')
 plt.legend()
-# plt.ylim([0, 0.5])
-plt.xlabel(r'$s_y$')
-plt.ylabel(r'mAP')
-plt.savefig('figures/similarity_all_sync', bbox_inches='tight')
+plt.ylim([0, 0.99])
 plt.show()
 

@@ -1,5 +1,3 @@
-## It seems that i were wrond somewhere. Need to redo compuatational experiments
-
 # Calculate min_error vs a_w kwta thresh omp
 # Paper version
 
@@ -66,7 +64,6 @@ def get_min_error_kwta(x, w):
         x_r = kWTA2(w.T @ y, a_x_optimal)
         # x_r = kWTA2(w.T @ y, a_x)
         error_kwta[i] = np.dot(x, (1 - x_r)) + np.dot(x_r, (1 - x))
-    # print(error_kwta)
     return a_y_range[np.argmin(error_kwta)],  np.min(error_kwta)
 
 
@@ -108,10 +105,7 @@ def get_min_omp(x, w):
             error_kwta2[j] = np.dot(x, (1 - x_r)) + np.dot(x_r, (1 - x))
         a_x_optimal = a_x_range[np.argmin(error_kwta2)]
         x_r = kWTA2(w.T @ y, a_x_optimal)
-        # r = 5 * x - x_r
         r = 2 * x - x_r
-        # r =  x - x_r
-        # error[k] = np.sum(np.abs(r))
         error[k] = np.dot(x, (1 - x_r)) + np.dot(x_r, (1 - x))
     return np.argmin(error) + 1, np.min(error)
 
@@ -168,22 +162,3 @@ plt.legend()
 plt.savefig('figures/error_sy_vs_aw_all', bbox_inches='tight')
 
 plt.show()
-
-#
-#
-# plt.plot(a_w_range, np.mean(error_kwta, axis=0) / N_x, label='error_kwta')
-# plt.plot(a_w_range, np.mean(error_thresh, axis=0) / N_x, label='error_thresh')
-# plt.plot(a_w_range, np.mean(error_omp, axis=0) / N_x, label='error_omp')
-# plt.legend()
-# plt.show()
-#
-#
-# plt.plot(a_w_range, np.mean(ay_kwta, axis=0) / N_y, label='a_y_kwta')
-# plt.plot(a_w_range, np.mean(ay_thresh, axis=0) / N_y, label='a_y_thresh')
-# plt.plot(a_w_range, np.mean(ay_omp, axis=0) / N_y, label='a_y_omp')
-# plt.legend()
-# plt.show()
-
-# plt.plot(a_x_range, np.mean(ay_kwta, axis=0), label='a_y')
-# plt.legend()
-# plt.show()

@@ -1,7 +1,4 @@
-## It seems that i were wrond somewhere. Need to redo compuatational experiments
-
 # Get min_error vs N_y for thresh
-
 # paper varsion
 
 import numpy as np
@@ -129,24 +126,16 @@ for j, ny in enumerate(N_y_range):
     w = generate_random_matrix(ny, N_x, a_w)
     for i in range(iters):
         x = generate_random_vector(N_x, a_x)
-        # a_y_kwta[i, j], error_kwta[i,j] = get_min_error_kwta(x, w)
         a_y_thr[i, j], error_thresh[i, j] = get_min_error_theta(x, w)
-        # a_y_omp[i, j], error_omp[i, j] = get_min_omp(x, w)
 
-# print(error_kwta, a_y_kwta)
 print(error_thresh, a_y_thr)
-# print(error_omp, a_y_omp)
 
 
-
-# plt.plot(N_y_range / N_x,  np.mean(error_thresh, axis=0) / N_x, linestyle='--', marker='o', color='k', label='error')
-# plt.plot(N_y_range / N_x, np.mean(a_y_thr, axis=0)/ N_y_range, linestyle='-', marker='o', color='k', label=r'$a_y$')
 
 plt.errorbar(N_y_range / N_x, np.mean(error_thresh, axis=0) / N_x, np.std(error_thresh, axis=0) / N_x,
              ecolor='#ff7f0e', elinewidth=1.5, label='error', fmt='k--D')
 plt.errorbar(N_y_range / N_x, np.mean(a_y_thr, axis=0) / N_y_range, np.std(a_y_thr, axis=0) / N_y_range,
              ecolor='#1f77b4', elinewidth=1.5, label=r'$s_y$', fmt='k-o')
-
 
 plt.xlabel(r'$\frac{N_y}{ N_x}$')
 plt.ylabel(r'Error, sparsity')
@@ -155,6 +144,5 @@ plt.legend()
 plt.ylim([0, 0.4])
 plt.xlim([N_min/ N_x, N_max/N_x])
 plt.savefig('figures/error&sy_vs_Ny_theta', bbox_inches='tight')
-
 plt.show()
 

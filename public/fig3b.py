@@ -1,19 +1,10 @@
-# Intermidiate steps for mutual information enstimation
-# how many different x lead to single y. Computational experiments
-
-# see encoding 12 series
-
-# for fixed a_x
-# graph kwta
+# mutual information enstimation
 # For all 2^N input vectors
+# get the MI for Y and X_r
 
-# get the count of unique y vectors
-
-#paper graph
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.special import comb
 import itertools
 import matplotlib as mpl
 
@@ -28,16 +19,12 @@ mpl.rcParams['savefig.dpi'] = 800
 mpl.rcParams['savefig.format'] = 'pdf'
 
 mpl.rcParams['font.size'] = 24
-mpl.rcParams['legend.fontsize'] = 24
+mpl.rcParams['legend.fontsize'] = 20
 mpl.rcParams['figure.titlesize'] = 14
 
-# np.random.seed(0)
-# print(comb(20, 5))
-# quit()
 
 ########################
 def kWTA2(cells, k):
-    # n_active = max(int(sparsity * cells.size), 1)
     winners = np.argsort(cells)[-k:]
     sdr = np.zeros(cells.shape, dtype=cells.dtype)
     sdr[winners] = 1
@@ -78,35 +65,43 @@ for i, inds in enumerate(x_space):
     # print(inds)
     X[i, inds] = 1
 
-# print(X[15])
 
-# quit()
-a_w = 5
+a_w = 7
 w = generate_random_matrix(N_y, N_x, a_w)
-a_y_range = np.arange(1, N_y, 1)
+w2 = generate_random_matrix(N_y, N_x, a_w)
+a_y_range = np.arange(1, N_y, 2)
 mut_info4 = np.zeros(a_y_range.size)
 mut_info5 = np.zeros(a_y_range.size)
+mut_info4x = np.zeros(a_y_range.size)
+mut_info5x = np.zeros(a_y_range.size)
+error = np.zeros((a_y_range.size, X_size))
 for i, ai in enumerate(a_y_range):
     print(ai)
     Y = np.zeros((X_size, N_y), dtype=int)
+    X_r = np.zeros((X_size, N_x), dtype=int)
     for k, x in enumerate(X):
         Y[k] = kWTA2(w @ x, ai).astype(int)
+        X_r[k] = kWTA2(w.T @ Y[k], np.count_nonzero(x)).astype(int)
+        # X_r[k] = kWTA2(w2.T @ Y[k], np.count_nonzero(x)).astype(int)  # shows that for random decoder weight the MI the same
+        error[i, k] = np.sum(np.abs(x - X_r[k]))
     uni, counts = np.unique(Y, return_counts=True, axis=0)
+    uni_x, counts_x = np.unique(X_r, return_counts=True, axis=0)
     mut_info4[i] = 1 - uni.shape[0] * np.mean(counts) * np.log2(np.mean(counts)) / ( X_size * N_x )
     mut_info5[i] = 1 - np.sum(counts * np.log2(counts)) / ( X_size * N_x )
-    # plt.hist(counts)
-    # plt.show()
+    mut_info5x[i] = 1 - np.sum(counts_x * np.log2(counts_x)) / (X_size * N_x )
 
-print(a_y_range / N_y)
-print(mut_info4)
-print(mut_info5)
+# print(a_y_range / N_y)
+# print(mut_info4)
+# print(mut_info5)
 
-plt.plot(a_y_range / N_y, mut_info4, '--o', label=r'Approximated, $\Omega^*$ ')
-plt.plot(a_y_range / N_y, mut_info5, '-o', label='Precise')
+plt.plot(a_y_range / N_y, mut_info4, '--o', label=r'I(X, Y) upper bound')
+plt.plot(a_y_range / N_y, mut_info5, '-o', label='I(X, Y)')
+plt.plot(a_y_range / N_y, mut_info5x, '-d',  markersize=10, label=r'$I(X,X_r)=I(Y,X_r)$')
+plt.plot(a_y_range / N_y, np.mean(error, axis=1) / N_x, '-*', markersize=10, label=r'Error')
 plt.ylim([0, 1])
 plt.xlim([0, 1])
 plt.xlabel(r'$s_y$')
 plt.ylabel(r'Scaled mutual information')
-plt.legend()
-plt.savefig('figures/mutual_information', bbox_inches='tight')
+plt.legend(loc='lower right')
+# plt.savefig('figures/mutual_information', bbox_inches='tight')
 plt.show()

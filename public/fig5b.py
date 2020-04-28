@@ -1,5 +1,3 @@
-## Here I will test the math theory.
-# Slightly changed task. Given x and w are random bernuli. The overlap fuunction will be simplified.
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.special import comb

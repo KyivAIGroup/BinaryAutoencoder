@@ -3,8 +3,6 @@
 # for the kwta theoretical formulat for optimal threshold gives not bad results, but not ideal.
 # why experimantal theta optimal is not integer (mean value)
 
-# need to test different strategies of reconstruction x_r
-
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.special import comb
@@ -113,12 +111,8 @@ a_x_range, theta_optimal, theta_optimal_hyp = get_curve(N_x, N_y, a_w)
 # plt.plot(a_x_range, theta_optimal_hyp, label='hyp')
 # plt.legend()
 # plt.show()
-# print(np.mean(theta_optimal, axis=1))
-# print(theta_optimal_hyp)
-# print(np.mean(theta_optimal, axis=1) - theta_optimal_hyp)
 
 plt.plot(a_x_range/ N_x, np.abs(np.mean(theta_optimal, axis=1) - theta_optimal_hyp), label="50")
-
 
 
 N_x = 150
@@ -134,4 +128,3 @@ plt.ylabel(r'Threshold error')
 plt.xlim([0, 1])
 plt.savefig('figures/thresh_diff', bbox_inches='tight')
 plt.show()
-# print(np.mean(theta_optimal))

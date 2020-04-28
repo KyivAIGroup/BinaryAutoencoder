@@ -1,7 +1,4 @@
-## It seems that i were wrond somewhere. Need to redo compuatational experiments
-
 # Calculate min_error vs a_x  thresh
-
 # Paper version
 
 import numpy as np
@@ -76,12 +73,10 @@ def get_min_error_theta(x, w):
 N_x = 50
 N_y = 150
 
-# a_x = 40
 a_w = 30
 
 
 a_x_range = np.arange(1, N_x, 1)
-# print(a_x_range)
 iters = 50
 ay_kwta = np.zeros((iters, a_x_range.size))
 error_kwta = np.zeros((iters, a_x_range.size))
@@ -110,9 +105,7 @@ plt.errorbar(a_x_range, np.mean(ay_thresh, axis=0) / N_y, np.std(ay_thresh, axis
 
 
 plt.legend()
-# plt.xlabel(r'$\frac{a_x}{ N_x}$', fontsize=20)
 plt.xlabel(r'$a_x$')
-# plt.ylabel(r'$\frac{d(x, x^r)}{N_x}$ and $\frac{a_y}{ N_y}$', fontsize=20)
 plt.ylabel(r'Error and sparsity')
 plt.xlim([0, N_x])
 plt.ylim([0, 0.5])

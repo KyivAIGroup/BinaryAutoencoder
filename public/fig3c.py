@@ -1,15 +1,6 @@
-## It seems that i were wrond somewhere. Need to redo compuatational experiments
-
 # Similarity preservation tests
-#  Try to use metric as Desgupta
-# average over random weights
-# different a_y
-
-# Random  data
-# Graph
 # Calculate mean average precision
-
-# pairwise correlatino
+# pairwise correlation
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -174,7 +165,7 @@ def get_overlap_pair(w, a_y, num_closest):
     Y = np.zeros((num_load, N_y))
     # Y_omp = np.zeros((num_load, N_y))
     for i, xi in enumerate(X):
-        Y[i] = get_kwta_pair(np.outer(xi, xi).flatten(), w, a_y)
+        Y[i] = kWTA2(w @ np.outer(xi, xi).flatten(), a_y)
 
     # Y_train = Y[:num_select]
     Y_train = Y[inds_to_select]

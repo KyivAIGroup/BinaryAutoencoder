@@ -1,15 +1,9 @@
-# Intermidiate steps for mutual information enstimation
-# how many different x lead to single y. Computational experiments
+# mutual information enstimation
+# get the MI for Y and X_r
+# compare to pairwise and bmp
 
-# see encoding 12 series
-
-# for fixed a_x
-# graph kwta vs bmp
-# For all 2^N input vectors
-
-# use pairwise corelation
-
-
+# since the MI for pair calculated with different random weights need to average over iteration
+# to speed up, decrease the number of iterations or decrease N_x
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -28,12 +22,10 @@ mpl.rcParams['savefig.dpi'] = 800
 mpl.rcParams['savefig.format'] = 'pdf'
 
 mpl.rcParams['font.size'] = 24
-mpl.rcParams['legend.fontsize'] = 24
+mpl.rcParams['legend.fontsize'] = 20
 mpl.rcParams['figure.titlesize'] = 14
 
 # np.random.seed(0)
-# print(comb(20, 5))
-# quit()
 
 ########################
 def kWTA2(cells, k):
@@ -56,11 +48,6 @@ def generate_random_matrix(R, N, a_x):
     return matrix
 
 
-def get_kwta(x, w, a_y):
-    y = kWTA2(w @ x, a_y)
-    return y
-
-
 def get_omp(x, w, a_y):
     y = np.zeros(w.shape[0])
     r = np.copy(x)
@@ -81,7 +68,11 @@ def get_omp(x, w, a_y):
         r = 2 * x - x_r
     return y
 
-N_y = 22
+def get_kwta(x, w, a_y):
+    y = kWTA2(w @ x, a_y)
+    return y
+
+N_y = 25
 N_x = 15
 
 
@@ -99,65 +90,52 @@ for i, inds in enumerate(x_space):
     # print(inds)
     X[i, inds] = 1
 
-# print(X[15])
-
-# quit()
-a_w = 5
-w = generate_random_matrix(N_y, N_x, a_w)
+a_w = 7
+# w2 = generate_random_matrix(N_y, N_x, a_w)
+# w_pair = generate_random_matrix(N_y **2, N_x, a_w)
 a_y_range = np.arange(1, N_y, 2)
-mut_info4 = np.zeros(a_y_range.size)
-mut_info5 = np.zeros(a_y_range.size)
-mut_info4bmp = np.zeros(a_y_range.size)
-mut_info5bmp = np.zeros(a_y_range.size)
-mut_info5pair = np.zeros(a_y_range.size)
-mut_info5pair3 = np.zeros(a_y_range.size)
-a_w = 5
-w_pair = generate_random_matrix(N_y, N_x ** 2, a_w ** 2)
-# w_pair3 = generate_random_matrix(N_y, N_x ** 3, a_w ** 3)
+iters = 5
 
-for i, ai in enumerate(a_y_range):
-    print(ai)
-    Y = np.zeros((X_size, N_y), dtype=int)
-    Y_bmp = np.zeros((X_size, N_y), dtype=int)
-    Y_pair = np.zeros((X_size, N_y), dtype=int)
-    # Y_pair3 = np.zeros((X_size, N_y), dtype=int)
-    for k, x in enumerate(X):
-        Y[k] = kWTA2(w @ x, ai).astype(int)
-        Y_bmp[k] = get_omp(x, w, ai).astype(int)
-        Y_pair[k] = kWTA2(w_pair @ np.outer(x, x).flatten(), ai).astype(int)
-        # Y_pair3[k] = kWTA2(w_pair3 @ np.outer(np.outer(x, x).flatten(), x).flatten(), ai).astype(int)
-    uni, counts = np.unique(Y, return_counts=True, axis=0)
-    uni2, counts2 = np.unique(Y_bmp, return_counts=True, axis=0)
-    uni3, counts3 = np.unique(Y_pair, return_counts=True, axis=0)
-    # uni4, counts4 = np.unique(Y_pair3, return_counts=True, axis=0)
-    # mut_info4[i] = 1 - uni.shape[0] * np.mean(counts) * np.log2(np.mean(counts)) / ( X_size * N_x )
-    mut_info5[i] = 1 - np.sum(counts * np.log2(counts)) / ( X_size * N_x )
-    # mut_info4bmp[i] = 1 - uni2.shape[0] * np.mean(counts2) * np.log2(np.mean(counts2)) / (X_size * N_x)
-    mut_info5bmp[i] = 1 - np.sum(counts2 * np.log2(counts2)) / (X_size * N_x)
-    mut_info5pair[i] = 1 - np.sum(counts3 * np.log2(counts3)) / (X_size * N_x)
-    # mut_info5pair3[i] = 1 - np.sum(counts4 * np.log2(counts4)) / (X_size * N_x)
+mut_info5_bmp =  np.zeros((iters, a_y_range.size))
+mut_info5x =  np.zeros((iters, a_y_range.size))
+mut_info5x2 = np.zeros((iters, a_y_range.size))
+error = np.zeros((a_y_range.size, X_size))
+for iter in range(iters):
+    print('New iter')
+    print(iter)
+    w = generate_random_matrix(N_y, N_x, a_w)
+    w_pair = generate_random_matrix(N_y ** 2, N_x, a_w)
+    for i, ai in enumerate(a_y_range):
+        print(ai)
+        Y = np.zeros((X_size, N_y), dtype=int)
+        Y_bmp = np.zeros((X_size, N_y), dtype=int)
+        X_r = np.zeros((X_size, N_x), dtype=int)
+        X_r_bmp = np.zeros((X_size, N_x), dtype=int)
+        X_r_pair = np.zeros((X_size, N_x), dtype=int)
+        for k, x in enumerate(X):
+            Y[k] = kWTA2(w @ x, ai).astype(int)
+            Y_bmp[k] = get_omp(x, w, ai).astype(int)
+            X_r[k] = kWTA2(w.T @ Y[k], np.count_nonzero(x)).astype(int)
+            X_r_bmp[k] = kWTA2(w.T @ Y_bmp[k], np.count_nonzero(x)).astype(int)
+            X_r_pair[k] = kWTA2(w_pair.T @ np.outer(Y[k], Y[k]).flatten(), np.count_nonzero(x)).astype(int)
+
+        uni_x, counts_x = np.unique(X_r, return_counts=True, axis=0)
+        uni_x_bmp, counts_x_bmp2 = np.unique(X_r_bmp, return_counts=True, axis=0)
+        uni_x2, counts_x2 = np.unique(X_r_pair, return_counts=True, axis=0)
+        mut_info5x[iter, i] = 1 - np.sum(counts_x * np.log2(counts_x)) / (X_size * N_x )
+        mut_info5x2[iter, i] = 1 - np.sum(counts_x2 * np.log2(counts_x2)) / (X_size * N_x )
+        mut_info5_bmp[iter, i] = 1 - np.sum(counts_x_bmp2 * np.log2(counts_x_bmp2)) / (X_size * N_x )
 
 
-    # plt.hist(counts)
-    # plt.show()
+plt.plot(a_y_range / N_y,  np.mean(mut_info5_bmp, axis=0), '-o',  markersize=10, label='bmp')
+plt.plot(a_y_range / N_y,  np.mean(mut_info5x, axis=0), '-d',  markersize=10, label='kwta')
+plt.plot(a_y_range / N_y, np.mean(mut_info5x2, axis=0), '--x',  markersize=10, label='pairwise average')
 
-print(a_y_range / N_y)
-print(mut_info4)
-print(mut_info5)
-print(mut_info4bmp)
-print(mut_info5bmp)
-print(mut_info5pair)
-
-# plt.plot(a_y_range / N_y, mut_info4, '--o', label=r'Approximated, $\Omega^*$ ')
-plt.plot(a_y_range / N_y, mut_info5, '-o', label='Precise kwta')
-# plt.plot(a_y_range / N_y, mut_info4bmp, 'r--o', label=r'Approximated, $\Omega^*$  bmp')
-plt.plot(a_y_range / N_y, mut_info5bmp, 'r-+', label='Precise bmp')
-plt.plot(a_y_range / N_y, mut_info5pair, 'b-d', label='Precise pair')
-# plt.plot(a_y_range / N_y, mut_info5pair3, 'c-o', label='Precise pair 3')
 plt.ylim([0, 1])
 plt.xlim([0, 1])
 plt.xlabel(r'$s_y$')
 plt.ylabel(r'Scaled mutual information')
-plt.legend()
-plt.savefig('figures/mutual_information_pair', bbox_inches='tight')
+plt.legend(loc='lower right')
+# plt.title(str(N_x) +' ' + str(N_y))
+# plt.savefig('figures/mutual_information_pair', bbox_inches='tight')
 plt.show()

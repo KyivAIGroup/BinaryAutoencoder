@@ -1,5 +1,3 @@
-## It seems that i were wrond somewhere. Need to redo compuatational experiments
-
 # Get min_error vs N_y for kwta omp thresh
 # paper version
 
@@ -46,9 +44,6 @@ def get_theta(v_r, x, t_max):
     for tx in range(t_max):
         error[tx] = np.sum(np.abs((v_r >= tx).astype(int) - x))
     return np.argmin(error)
-
-
-
 
 
 def get_min_error_kwta(x, w):
@@ -107,10 +102,7 @@ def get_min_omp(x, w):
             error_kwta2[j] = np.dot(x, (1 - x_r)) + np.dot(x_r, (1 - x))
         a_x_optimal = a_x_range[np.argmin(error_kwta2)]
         x_r = kWTA2(w.T @ y, a_x_optimal)
-        # r = 5 * x - x_r
         r = 2 * x - x_r
-        # r =  x - x_r
-        # error[k] = np.sum(np.abs(r))
         error[k] = np.dot(x, (1 - x_r)) + np.dot(x_r, (1 - x))
     return np.argmin(error) + 1, np.min(error)
 
@@ -139,10 +131,6 @@ for j, ny in enumerate(N_y_range):
         a_y_thr[i, j], error_thresh[i, j] = get_min_error_theta(x, w)
         a_y_omp[i, j], error_omp[i, j] = get_min_omp(x, w)
 
-# print(error_kwta, a_y_kwta)
-# print(error_thresh, a_y_thr)
-# print(error_omp, a_y_omp)
-
 
 plt.plot(N_y_range / N_x,  np.mean(error_kwta, axis=0) / N_x,  label='error kwta')
 plt.plot(N_y_range / N_x,  np.mean(error_thresh, axis=0) / N_x,  marker='o', markerfacecolor='k', label='error threshold')
@@ -159,16 +147,6 @@ plt.ylim([0, 0.4])
 plt.savefig('figures/error_sy_vs_Ny_all', bbox_inches='tight')
 plt.show()
 
-#
-# plt.plot(N_y_range / N_x, np.mean(a_y_kwta, axis=0)/ N_y_range, 'b-', label='sparsity_kwta')
-# plt.plot(N_y_range / N_x, np.mean(a_y_thr, axis=0)/ N_y_range, 'y-', label='sparsity_theta')
-# plt.plot(N_y_range / N_x, np.mean(a_y_omp, axis=0)/ N_y_range, 'r-', label='sparsity_omp')
-# plt.xlabel(r'$\frac{N_y}{ N_x}$', fontsize=20)
-# plt.ylabel('Number of active neurons', color='b')
-# plt.legend()
-# plt.ylim([0, 0.8])
-# plt.show()
-#
 
 plt.plot(N_y_range / N_x, np.mean(a_y_kwta, axis=0), 'b-', label='kwta')
 plt.plot(N_y_range / N_x, np.mean(a_y_thr, axis=0), 'y-', label='theta')

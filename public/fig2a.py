@@ -1,9 +1,4 @@
-## It seems that i were wrond somewhere. Need to redo compuatational experiments
-
-# Get error vs a_y for thresholding kwta mp
-
-# to understand why thresholding gives better result I will try to get a_x optimal every time for kwta and compare
-
+# Get error vs a_y for thresholding kwta bmp
 # paper version
 
 import numpy as np
@@ -108,10 +103,7 @@ def get_omp_opt(x, w):
             error_kwta2[j] = np.dot(x, (1 - x_r)) + np.dot(x_r, (1 - x))
         a_x_optimal = a_x_range[np.argmin(error_kwta2)]
         x_r = kWTA2(w.T @ y, a_x_optimal)
-        # r = 5 * x - x_r
         r = 2 * x - x_r
-        # r =  x - x_r
-        # error[k] = np.sum(np.abs(r))
         error[k] = np.dot(x, (1 - x_r)) + np.dot(x_r, (1 - x))
     return np.arange(steps), error
 
@@ -131,7 +123,6 @@ a_y_range_dt = np.zeros((iters, a_y_range.size))
 error_kwta = np.zeros((iters, a_y_range.size))
 
 a_y_range_omp = np.arange(N_y)
-# a_y_range_omp = np.zeros((iters, N_y))
 error_omp = np.zeros((iters, N_y))
 
 a_y_range_thr = np.zeros((iters, theta_range.size))
@@ -144,11 +135,8 @@ for i in range(iters):
     a_y_range_dt[i], error_kwta[i] = get_error_kwta(x, w)
     a_y_range_thr[i], error_threshold[i] = get_error_theta(x, w)
     _, error_omp[i] = get_omp_opt(x, w)
-    # plt.plot( a_y_range_thr[i]/ N_y, error_threshold[i]/ N_x)
 
 
-# print(np.mean(error_kwta, axis=0))
-# print(np.std(error_kwta, axis=0))
 
 plt.plot(a_y_range / N_y, np.mean(error_kwta, axis=0) / N_x, linestyle='-',  label='kwta')
 plt.plot(np.mean(a_y_range_thr, axis=0) / N_y, np.mean(error_threshold, axis=0) / N_x, linestyle='--', marker='o', markerfacecolor='k',  label='threshold')

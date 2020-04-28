@@ -1,7 +1,4 @@
-## It seems that i were wrond somewhere. Need to redo compuatational experiments
-
 # Calculate min_error vs a_w  thresh
-
 #Paper version
 
 import numpy as np
@@ -141,9 +138,7 @@ for i in range(iters):
     x = generate_random_vector(N_x, a_x)
     for k, awi in enumerate(a_w_range):
         w = generate_random_matrix(N_y, N_x, awi)
-        # ay_kwta[i, k], error_kwta[i, k] = get_min_error_kwta(x, w)
         ay_thresh[i, k], error_thresh[i, k] = get_min_error_theta(x, w)
-        # ay_omp[i, k], error_omp[i, k] = get_min_omp(x, w)
 
 # print(np.mean(ay_kwta, axis=0))
 # print(np.mean(error_kwta, axis=0))
@@ -153,8 +148,6 @@ print(np.mean(ay_thresh, axis=0))
 print(np.mean(error_thresh, axis=0))
 
 
-# plt.plot(a_w_range, np.mean(error_thresh, axis=0) / N_x, linestyle='--', marker='o', color='k', label='error')
-# plt.plot(a_w_range, np.mean(ay_thresh, axis=0) / N_y,  linestyle='-', marker='o', color='k', label=r'$a_y$')
 
 plt.errorbar(a_w_range, np.mean(error_thresh, axis=0) / N_x, np.std(error_thresh, axis=0) / N_x,
              ecolor='#ff7f0e', elinewidth=1.5, fmt='k--D', label='error')
@@ -169,6 +162,3 @@ plt.ylim([0, 1])
 plt.savefig('figures/error&ay_vs_aw_theta', bbox_inches='tight')
 plt.show()
 
-# plt.plot(a_x_range, np.mean(ay_kwta, axis=0), label='a_y')
-# plt.legend()
-# plt.show()

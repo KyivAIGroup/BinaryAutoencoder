@@ -47,9 +47,6 @@ def get_theta(v_r, x, t_max):
     return np.argmin(error)
 
 
-
-
-
 def get_min_error_kwta(x, w):
     a_x = np.count_nonzero(x)
     N_y = w.shape[0]
@@ -99,7 +96,6 @@ def get_min_error_theta(x, w):
     return a_y_range[np.argmin(error)], np.min(error)
 
 
-
 N_x = 50
 a_x = 20
 a_w = 30
@@ -120,17 +116,12 @@ for j, ny in enumerate(N_y_range):
     print(ny)
     w = generate_random_matrix(ny, N_x, a_w)
     for i in range(iters):
-        # a_x = np.random.randint(1, N_x)
         x = generate_random_vector(N_x, a_x)
         a_y_kwta[i, j], error_kwta[i,j] = get_min_error_kwta_simple(x, w)
-        # a_y_thr[i, j], error_thresh[i, j] = get_min_error_theta(x, w)
-
 
 
 print(a_y_kwta)
 plt.plot(N_y_range / N_x, np.mean(a_y_kwta, axis=0), 'b-', label='kwta')
-# plt.plot(N_y_range / N_x, np.mean(a_y_thr, axis=0), 'y-', label='theta')
-# plt.plot(N_y_range / N_x, np.mean(a_y_omp, axis=0), 'r-', label='omp')
 plt.xlabel(r'$\frac{N_y}{ N_x}$')
 plt.ylabel('Number of active neurons', color='b')
 plt.legend()

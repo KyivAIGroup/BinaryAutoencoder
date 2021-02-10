@@ -118,7 +118,7 @@ a_w = 30
 
 a_x_range = np.arange(1, N_x, 1)
 
-iters = 50
+iters = 100
 ay_kwta = np.zeros((iters, a_x_range.size))
 error_kwta = np.zeros((iters, a_x_range.size))
 
@@ -147,13 +147,13 @@ print(np.mean(ay_thresh, axis=0))
 print(np.mean(error_thresh, axis=0))
 
 
-plt.plot(a_x_range, np.mean(error_kwta, axis=0) / N_x,  label='error kwta')
-plt.plot(a_x_range, np.mean(error_thresh, axis=0) / N_x, marker='o', markerfacecolor='k', label='error thresh')
-plt.plot(a_x_range, np.mean(error_omp, axis=0) / N_x, label='error bmp')
+plt.plot(a_x_range, np.mean(error_kwta, axis=0) / N_x,  label='Error kWTA')
+plt.plot(a_x_range, np.mean(error_thresh, axis=0) / N_x, marker='o', markerfacecolor='k', label='Error Threshold')
+plt.plot(a_x_range, np.mean(error_omp, axis=0) / N_x,marker='d', label='Error BMP')
 
-plt.plot(a_x_range, np.mean(ay_kwta, axis=0) / N_y, linestyle='--', label=r'$s_y$ kwta')
-plt.plot(a_x_range, np.mean(ay_thresh, axis=0) / N_y, linestyle='--',marker='o', markerfacecolor='k', label=r'$s_y$ thresh')
-plt.plot(a_x_range, np.mean(ay_omp, axis=0) / N_y, linestyle='--', label=r'$s_y$ bmp')
+plt.plot(a_x_range, np.mean(ay_kwta, axis=0) / N_y, linestyle='--', label=r'$s_y$ kWTA')
+plt.plot(a_x_range, np.mean(ay_thresh, axis=0) / N_y, linestyle='--', marker='o', markerfacecolor='k', label=r'$s_y$ Threshold')
+plt.plot(a_x_range, np.mean(ay_omp, axis=0) / N_y, linestyle='--', marker='d', label=r'$s_y$ BMP')
 
 
 plt.xlabel(r'$a_x$')

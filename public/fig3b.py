@@ -47,29 +47,37 @@ def get_kwta(x, w, a_y):
     y = kWTA2(w @ x, a_y)
     return y
 
-N_y = 30
+N_y = 40
 N_x = 20
+#
+# print('here')
+# x_space = []
+# stuff = np.arange(N_x)
+# for L in range(0, stuff.size + 1):
+#     for subset in itertools.combinations(stuff, L):
+#         x_space.append(list(subset))
+#
+# x_space.pop(0)
+# X_size = len(x_space)
+# X = np.zeros((X_size, N_x), dtype=int)
+# print(X_size)
+# for i, inds in enumerate(x_space):
+#     # print(inds)
+#     X[i, inds] = 1
+#
+# print(X.shape)
 
-
-x_space = []
-stuff = np.arange(N_x)
-for L in range(0, stuff.size + 1):
-    for subset in itertools.combinations(stuff, L):
-        x_space.append(list(subset))
-
-x_space.pop(0)
-X_size = len(x_space)
-X = np.zeros((X_size, N_x), dtype=int)
-print(X_size)
-for i, inds in enumerate(x_space):
-    # print(inds)
-    X[i, inds] = 1
-
+inds = [0, 1]
+X = np.array(list(itertools.product(*[inds] * N_x)))
+X_size = X.shape[0]
+print(X.shape)
+# quit()
 
 a_w = 7
 w = generate_random_matrix(N_y, N_x, a_w)
 w2 = generate_random_matrix(N_y, N_x, a_w)
 a_y_range = np.arange(1, N_y, 2)
+# a_y_range = np.arange(1, N_y, 10)
 mut_info4 = np.zeros(a_y_range.size)
 mut_info5 = np.zeros(a_y_range.size)
 mut_info4x = np.zeros(a_y_range.size)
@@ -94,8 +102,8 @@ for i, ai in enumerate(a_y_range):
 # print(mut_info4)
 # print(mut_info5)
 
-plt.plot(a_y_range / N_y, mut_info4, '--o', label=r'I(X, Y) upper bound')
-plt.plot(a_y_range / N_y, mut_info5, '-o', label='I(X, Y)')
+plt.plot(a_y_range / N_y, mut_info4, '--o', label=r'$I(X, Y)$ upper bound')
+plt.plot(a_y_range / N_y, mut_info5, '-o', label=r'$I(X, Y)$')
 plt.plot(a_y_range / N_y, mut_info5x, '-d',  markersize=10, label=r'$I(X,X_r)=I(Y,X_r)$')
 plt.plot(a_y_range / N_y, np.mean(error, axis=1) / N_x, '-*', markersize=10, label=r'Error')
 plt.ylim([0, 1])
@@ -103,5 +111,5 @@ plt.xlim([0, 1])
 plt.xlabel(r'$s_y$')
 plt.ylabel(r'Scaled mutual information')
 plt.legend(loc='lower right')
-# plt.savefig('figures/mutual_information', bbox_inches='tight')
+plt.savefig('figures/mutual_information', bbox_inches='tight')
 plt.show()

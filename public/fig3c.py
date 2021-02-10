@@ -6,7 +6,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
-import load_mnist
 
 
 mpl.rcParams['grid.color'] = 'k'
@@ -248,10 +247,12 @@ a_x = 20
 
 X = generate_random_matrix(num_load, N_x, a_x)
 
-a_y_range = np.arange(1, N_y, 50)
+a_y_range = np.arange(0, N_y, 100)
+a_y_range[0] = 50
+a_y_range = np.hstack((a_y_range, np.array([1950])))
 
 num_closest = 20
-iters = 1
+iters = 10
 overlap = np.zeros((iters, a_y_range.size))
 
 for i in range(iters):
@@ -261,7 +262,7 @@ for i in range(iters):
         print(ai)
         overlap[i, j] = get_overlap(w, ai, num_closest)
 
-plt.plot(a_y_range / N_y, np.mean(overlap, axis=0), '-d', label='kwta')
+plt.plot(a_y_range / N_y, np.mean(overlap, axis=0), '-d', label='kWTA')
 
 for i in range(iters):
     w = generate_random_matrix(N_y, N_x ** 2, a_w ** 2)
@@ -270,7 +271,7 @@ for i in range(iters):
         print(ai)
         overlap[i, j] = get_overlap_pair(w, ai, num_closest)
 
-plt.plot(a_y_range / N_y, np.mean(overlap, axis=0), '-d', label='kwta pair')
+plt.plot(a_y_range / N_y, np.mean(overlap, axis=0), '-o', label='Pairwise sigma-pi')
 
 
 plt.legend()

@@ -127,9 +127,9 @@ for iter in range(iters):
         mut_info5_bmp[iter, i] = 1 - np.sum(counts_x_bmp2 * np.log2(counts_x_bmp2)) / (X_size * N_x )
 
 
-plt.plot(a_y_range / N_y,  np.mean(mut_info5_bmp, axis=0), '-o',  markersize=10, label='bmp')
-plt.plot(a_y_range / N_y,  np.mean(mut_info5x, axis=0), '-d',  markersize=10, label='kwta')
-plt.plot(a_y_range / N_y, np.mean(mut_info5x2, axis=0), '--x',  markersize=10, label='pairwise average')
+plt.plot(a_y_range / N_y,  np.mean(mut_info5_bmp, axis=0), '-o',  markersize=10, label='BMP')
+plt.plot(a_y_range / N_y,  np.mean(mut_info5x, axis=0), '-d',  markersize=10, label='kWTA')
+plt.plot(a_y_range / N_y, np.mean(mut_info5x2, axis=0), '--x',  markersize=10, label='Pairwise sigma-pi')
 
 plt.ylim([0, 1])
 plt.xlim([0, 1])
@@ -137,5 +137,5 @@ plt.xlabel(r'$s_y$')
 plt.ylabel(r'Scaled mutual information')
 plt.legend(loc='lower right')
 # plt.title(str(N_x) +' ' + str(N_y))
-# plt.savefig('figures/mutual_information_pair', bbox_inches='tight')
+plt.savefig('figures/mutual_information_pair', bbox_inches='tight')
 plt.show()

@@ -40,6 +40,7 @@ def generate_random_matrix(R, N, a_x):
     return matrix
 
 def get_theta(v_r, x, t_max):
+    # returns the optimal threshold of the output layer
     error_th = np.zeros(t_max)
     for tx in range(t_max):
         error_th[tx] = np.sum(np.abs((v_r >= tx).astype(int) - x))
@@ -115,7 +116,7 @@ a_x = 20
 a_w = 30
 
 
-iters = 400
+iters = 500
 a_y_range = np.arange(5, N_y - 5, 1)
 theta_range = np.arange(np.min([a_x, a_w]))
 
@@ -128,19 +129,19 @@ error_omp = np.zeros((iters, N_y))
 a_y_range_thr = np.zeros((iters, theta_range.size))
 error_threshold = np.zeros((iters, theta_range.size))
 
-x = generate_random_vector(N_x, a_x)
+w = generate_random_matrix(N_y, N_x, a_w)
 for i in range(iters):
     print(i)
-    w = generate_random_matrix(N_y, N_x, a_w)
+    x = generate_random_vector(N_x, a_x)
     a_y_range_dt[i], error_kwta[i] = get_error_kwta(x, w)
     a_y_range_thr[i], error_threshold[i] = get_error_theta(x, w)
     _, error_omp[i] = get_omp_opt(x, w)
 
 
 
-plt.plot(a_y_range / N_y, np.mean(error_kwta, axis=0) / N_x, linestyle='-',  label='kwta')
-plt.plot(np.mean(a_y_range_thr, axis=0) / N_y, np.mean(error_threshold, axis=0) / N_x, linestyle='--', marker='o', markerfacecolor='k',  label='threshold')
-plt.plot(a_y_range_omp / N_y, np.mean(error_omp, axis=0) / N_x, linestyle='-',  label='bmp')
+plt.plot(a_y_range / N_y, np.mean(error_kwta, axis=0) / N_x, linestyle='-',  label='kWTA')
+plt.plot(np.mean(a_y_range_thr, axis=0) / N_y, np.mean(error_threshold, axis=0) / N_x, linestyle='--', marker='o', markerfacecolor='k',  label='Threshold')
+plt.plot(a_y_range_omp / N_y, np.mean(error_omp, axis=0) / N_x, linestyle='-.',  label='BMP')
 plt.xlabel(r'$s_y$')
 plt.ylabel(r'Error')
 plt.xlim([0, 1])

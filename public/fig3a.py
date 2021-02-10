@@ -5,8 +5,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
-import load_mnist
-
 
 mpl.rcParams['grid.color'] = 'k'
 mpl.rcParams['grid.linestyle'] = ':'
@@ -198,7 +196,7 @@ def get_overlap(w, a_y, num_closest):
 
 num_load = 1000
 N_x = 50
-N_y = 500
+N_y = 200
 a_w = 30
 a_x = 20
 
@@ -209,7 +207,8 @@ a_y_range = np.arange(1, N_y, 9)
 # a_y_range = np.arange(100, 101, 100)
 
 num_closest = 20
-iters = 10
+
+iters = 20
 overlap = np.zeros((iters, a_y_range.size))
 overlap_omp = np.zeros((iters, a_y_range.size))
 import time
@@ -227,9 +226,9 @@ for i in range(iters):
     for k, ti in enumerate(theta_range):
         a_y_theta[i, k], overlap_theta[i, k] = get_overlap_theta(w, ti, num_closest)
         print(ti, a_y_theta[i, k])
-    # for j, ai in enumerate(a_y_range):
-    #     print(ai)
-    #     overlap[i, j], overlap_omp[i, j] = get_overlap(w, ai, num_closest)
+    for j, ai in enumerate(a_y_range):
+        print(ai)
+        overlap[i, j], overlap_omp[i, j] = get_overlap(w, ai, num_closest)
 
 print(a_y_theta)
 # print(overlap)
@@ -239,13 +238,13 @@ print(np.mean(overlap_omp, axis=0))
 
 elapsed_time = time.process_time() - t
 print('Time: ', elapsed_time)
-plt.plot(a_y_range / N_y, np.mean(overlap, axis=0), '-d', label='kwta')
-plt.plot(a_y_range/ N_y, np.mean(overlap_omp, axis=0), '-v', label='bmp')
-plt.plot(np.mean(a_y_theta, axis=0) / N_y, np.mean(overlap_theta, axis=0), '--o', label='threshold')
+plt.plot(a_y_range / N_y, np.mean(overlap, axis=0), '-d', label='kWTA')
+plt.plot(a_y_range/ N_y, np.mean(overlap_omp, axis=0), '-v', label='BMP')
+plt.plot(np.mean(a_y_theta, axis=0) / N_y, np.mean(overlap_theta, axis=0), '--o', label='Threshold')
 plt.legend()
 # plt.ylim([0, 0.5])
 plt.xlabel(r'$s_y$')
-plt.ylabel(r'mAP')
+plt.ylabel(r'Similarity, mAP')
 plt.savefig('figures/similarity_all_sync', bbox_inches='tight')
 plt.show()
 

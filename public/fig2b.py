@@ -111,9 +111,9 @@ a_x = 20
 a_w = 30
 
 
-iters = 50
+iters = 200
 
-N_y_range = np.arange(100, 1200, 100)
+N_y_range = np.arange(100, 800, 100)
 a_y_kwta= np.zeros((iters, N_y_range.size))
 a_y_thr = np.zeros((iters, N_y_range.size))
 a_y_omp = np.zeros((iters, N_y_range.size))
@@ -132,13 +132,13 @@ for j, ny in enumerate(N_y_range):
         a_y_omp[i, j], error_omp[i, j] = get_min_omp(x, w)
 
 
-plt.plot(N_y_range / N_x,  np.mean(error_kwta, axis=0) / N_x,  label='error kwta')
-plt.plot(N_y_range / N_x,  np.mean(error_thresh, axis=0) / N_x,  marker='o', markerfacecolor='k', label='error threshold')
-plt.plot(N_y_range / N_x,  np.mean(error_omp, axis=0) / N_x,  label='error bmp')
+plt.plot(N_y_range / N_x,  np.mean(error_kwta, axis=0) / N_x,  label='Error kWTA')
+plt.plot(N_y_range / N_x,  np.mean(error_thresh, axis=0) / N_x,  marker='o', markerfacecolor='k', label='Error Threshold')
+plt.plot(N_y_range / N_x,  np.mean(error_omp, axis=0) / N_x,  marker='d', label='Error BMP')
 
-plt.plot(N_y_range / N_x, np.mean(a_y_kwta, axis=0)/ N_y_range, linestyle='--', label=r'$s_y$ kwta')
-plt.plot(N_y_range / N_x, np.mean(a_y_thr, axis=0)/ N_y_range, linestyle='--', marker='o', markerfacecolor='k', label=r'$s_y$ theta')
-plt.plot(N_y_range / N_x, np.mean(a_y_omp, axis=0)/ N_y_range, linestyle='--', label=r'$s_y$ bmp')
+plt.plot(N_y_range / N_x, np.mean(a_y_kwta, axis=0)/ N_y_range, linestyle='--', label=r'$s_y$ kWTA')
+plt.plot(N_y_range / N_x, np.mean(a_y_thr, axis=0)/ N_y_range, linestyle='--', marker='o', markerfacecolor='k', label=r'$s_y$ Threshold')
+plt.plot(N_y_range / N_x, np.mean(a_y_omp, axis=0)/ N_y_range, linestyle='--', marker='d', label=r'$s_y$ BMP')
 
 plt.xlabel(r'$\frac{N_y}{ N_x}$')
 plt.ylabel(r'Error, sparsity')

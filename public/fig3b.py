@@ -1,11 +1,7 @@
-# mutual information enstimation
-# For all 2^N input vectors
-# get the MI for Y and X_r
-
+# Check how the curve flattens
 
 import numpy as np
 import matplotlib.pyplot as plt
-import itertools
 import matplotlib as mpl
 
 
@@ -18,14 +14,17 @@ mpl.rcParams['figure.dpi'] = 80
 mpl.rcParams['savefig.dpi'] = 800
 mpl.rcParams['savefig.format'] = 'pdf'
 
-mpl.rcParams['font.size'] = 24
-mpl.rcParams['legend.fontsize'] = 20
+mpl.rcParams['font.size'] = 22
+mpl.rcParams['legend.fontsize'] = 22
 mpl.rcParams['figure.titlesize'] = 14
 
-
 ########################
-def kWTA2(cells, k):
-    winners = np.argsort(cells)[-k:]
+def kWTA(cells, k, argsorted=None):
+    # n_active = max(int(sparsity * cells.size), 1)
+    if argsorted is not None:
+        winners = argsorted[-k:]
+    else:
+        winners = np.argsort(cells)[-k:]
     sdr = np.zeros(cells.shape, dtype=cells.dtype)
     sdr[winners] = 1
     return sdr
@@ -42,74 +41,139 @@ def generate_random_matrix(R, N, a_x):
         matrix[i] = generate_random_vector(N, a_x)
     return matrix
 
+def get_theta(v_r, x, t_max):
+    # returns the optimal threshold of the output layer
+    error_th = np.zeros(t_max)
+    for tx in range(t_max):
+        error_th[tx] = np.sum(np.abs((v_r >= tx).astype(int) - x))
+    return np.argmin(error_th)
 
-def get_kwta(x, w, a_y):
-    y = kWTA2(w @ x, a_y)
-    return y
 
-N_y = 40
-N_x = 20
-#
-# print('here')
-# x_space = []
-# stuff = np.arange(N_x)
-# for L in range(0, stuff.size + 1):
-#     for subset in itertools.combinations(stuff, L):
-#         x_space.append(list(subset))
-#
-# x_space.pop(0)
-# X_size = len(x_space)
-# X = np.zeros((X_size, N_x), dtype=int)
-# print(X_size)
-# for i, inds in enumerate(x_space):
-#     # print(inds)
-#     X[i, inds] = 1
-#
-# print(X.shape)
+def get_error_theta(x, w, theta_range):
+    a_x = np.count_nonzero(x)
+    # a_w = np.count_nonzero(w[0])
 
-inds = [0, 1]
-X = np.array(list(itertools.product(*[inds] * N_x)))
-X_size = X.shape[0]
-print(X.shape)
-# quit()
+    # theta_range = np.arange(1, np.min([a_x, a_w]) + 1)[::-1]
+    a_y_range = np.zeros(theta_range.size, dtype=int)
+    error = np.zeros(theta_range.size)
+    for i, ti in enumerate(theta_range):
+        y = (w @ x >= ti).astype(int)
+        a_y_range[i] = np.count_nonzero(y)
+        if a_y_range[i]:
+            z = w.T @ y
+            t_x = get_theta(z, x, a_y_range[i])
+            x_r = (z >= t_x).astype(int)
+            error[i] = np.dot(x, (1 - x_r)) + np.dot(x_r, (1 - x))
+        else:
+            error[i] = N_x
+    # print(a_y_range.size)
+    return a_y_range, error
 
+
+def get_kWTA(x, w, overlap, a_y):
+    a_x = np.count_nonzero(x)
+    a_x_step = 10
+    a_x_range = np.arange(a_x - a_x_step, a_x + a_x_step, 1)
+    y = kWTA(overlap, a_y)
+    error_kwta2 = np.zeros(a_x_range.size)
+    for j, axi in enumerate(a_x_range):
+        x_r = kWTA(w.T @ y, axi)
+        error_kwta2[j] = np.sum(np.abs(x - x_r))
+    a_x_optimal = a_x_range[np.argmin(error_kwta2)]
+    # a_x_optimal = a_x
+    x_r2 = kWTA(w.T @ y, a_x_optimal)
+    error_kwta = np.sum(np.abs(x - x_r2))
+    return error_kwta
+
+def get_error_kwta(x, w, a_y_range):
+    a_x = np.count_nonzero(x)
+    a_x_step = 5
+    a_x_range = np.arange(a_x - a_x_step, a_x + a_x_step, 1)
+    error_kwta = np.zeros(a_y_range.size)
+    overlap = w @ x
+    winners = np.argsort(overlap)
+    for i, ai in enumerate(a_y_range):
+        y = kWTA(overlap, ai, winners)
+        # x_r2 = kWTA(w.T @ y, a_x)
+        error_kwta2 = np.zeros(a_x_range.size)
+        for j, axi in enumerate(a_x_range):
+            x_r = kWTA(w.T @ y, axi)
+            error_kwta2[j] = np.sum(np.abs(x - x_r))
+        a_x_optimal = a_x_range[np.argmin(error_kwta2)]
+        x_r2 = kWTA(w.T @ y, a_x_optimal)
+        error_kwta[i] = np.sum(np.abs(x - x_r2))
+    return error_kwta
+
+def get_omp_opt(x, w):
+    a_x = np.count_nonzero(x)
+    steps = w.shape[0]
+    y = np.zeros(w.shape[0])
+    r = np.copy(x)
+    error = np.zeros(steps)
+    a_x_step = 10
+    a_x_range = np.arange(a_x - a_x_step, a_x + a_x_step, 1)
+    for k in range(steps):
+        z = w @ r
+        z[np.nonzero(y)[0]] = -100
+        ind = np.argmax(z)
+        y[ind] = 1
+        error_kwta2 = np.zeros(a_x_range.size)
+        for j, axi in enumerate(a_x_range):
+            x_r = kWTA(w.T @ y, axi)
+            error_kwta2[j] = np.sum(np.abs(x - x_r))
+        a_x_optimal = a_x_range[np.argmin(error_kwta2)]
+        # a_x_optimal = a_x
+        x_r = kWTA(w.T @ y, a_x_optimal)
+        r = 2 * x - x_r
+        error[k] = np.sum(np.abs(x - x_r))
+    return np.arange(steps), error
+
+
+N_x = 50
+
+a_x = 25
 a_w = 7
-w = generate_random_matrix(N_y, N_x, a_w)
-w2 = generate_random_matrix(N_y, N_x, a_w)
-a_y_range = np.arange(1, N_y, 2)
-# a_y_range = np.arange(1, N_y, 10)
-mut_info4 = np.zeros(a_y_range.size)
-mut_info5 = np.zeros(a_y_range.size)
-mut_info4x = np.zeros(a_y_range.size)
-mut_info5x = np.zeros(a_y_range.size)
-error = np.zeros((a_y_range.size, X_size))
-for i, ai in enumerate(a_y_range):
-    print(ai)
-    Y = np.zeros((X_size, N_y), dtype=int)
-    X_r = np.zeros((X_size, N_x), dtype=int)
-    for k, x in enumerate(X):
-        Y[k] = kWTA2(w @ x, ai).astype(int)
-        X_r[k] = kWTA2(w.T @ Y[k], np.count_nonzero(x)).astype(int)
-        # X_r[k] = kWTA2(w2.T @ Y[k], np.count_nonzero(x)).astype(int)  # shows that for random decoder weight the MI the same
-        error[i, k] = np.sum(np.abs(x - X_r[k]))
-    uni, counts = np.unique(Y, return_counts=True, axis=0)
-    uni_x, counts_x = np.unique(X_r, return_counts=True, axis=0)
-    mut_info4[i] = 1 - uni.shape[0] * np.mean(counts) * np.log2(np.mean(counts)) / ( X_size * N_x )
-    mut_info5[i] = 1 - np.sum(counts * np.log2(counts)) / ( X_size * N_x )
-    mut_info5x[i] = 1 - np.sum(counts_x * np.log2(counts_x)) / (X_size * N_x )
 
-# print(a_y_range / N_y)
-# print(mut_info4)
-# print(mut_info5)
 
-plt.plot(a_y_range / N_y, mut_info4, '--o', label=r'$I(X, Y)$ upper bound')
-plt.plot(a_y_range / N_y, mut_info5, '-o', label=r'$I(X, Y)$')
-plt.plot(a_y_range / N_y, mut_info5x, '-d',  markersize=10, label=r'$I(X,X_r)=I(Y,X_r)$')
-plt.plot(a_y_range / N_y, np.mean(error, axis=1) / N_x, '-*', markersize=10, label=r'Error')
-plt.ylim([0, 1])
-plt.xlim([0, 1])
-plt.xlabel(r'$s_y$')
-plt.ylabel(r'Scaled mutual information')
-plt.legend(loc='lower right')
-plt.savefig('figures/mutual_information', bbox_inches='tight')
+iters = 3000
+
+
+N_y_range = np.arange(200, 2200, 100)
+error_min = np.zeros((N_y_range.size, iters))
+error_sparse = np.zeros((N_y_range.size, iters))
+error_sparse2 = np.zeros((N_y_range.size, iters))
+
+
+import time
+t = time.time()
+for j, ny in enumerate(N_y_range):
+    print(ny)
+    w = np.random.binomial(1, float(a_w) / N_x, size=(ny, N_x))
+    for i in range(iters):
+        # x = generate_random_vector(N_x, a_x)
+        # x = generate_random_vector(N_x, a_x)
+        x = np.random.binomial(1, float(a_x) / N_x, size=N_x)
+        # x2 = np.random.binomial(1, float(a_x) / N_x, size=N_x)
+        overlap = w @ x
+        error_min[j, i] = get_kWTA(x, w, overlap, int(ny * 0.3))
+        error_sparse[j, i] = get_kWTA(x, w, overlap, int(ny * 0.05))
+        error_sparse2[j, i] = get_kWTA(x, w, overlap,  int(ny * 0.10))
+
+
+data = np.mean(error_sparse - error_min, axis=1) # - np.mean(error_min, axis=1)
+data2 = np.mean(error_sparse2, axis=1) - np.mean(error_min, axis=1)
+print(data)
+plt.plot(N_y_range, data / N_x, linestyle='-', label=r'$E_{0.05} - E_{min}$')
+plt.plot(N_y_range, data2 / N_x, linestyle='--', label=r'$E_{0.1} - E_{min}$')
+
+
+
+print('Time: ', time.time() - t)
+
+plt.xlabel(r'$N_y$')
+plt.ylabel(r'Relative error')
+plt.xlim([100, 2100])
+plt.ylim([0, 0.1])
+plt.legend()
+plt.savefig('figures/relative_error', bbox_inches='tight')
 plt.show()

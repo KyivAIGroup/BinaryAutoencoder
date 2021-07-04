@@ -20,9 +20,12 @@ mpl.rcParams['legend.fontsize'] = 22
 mpl.rcParams['figure.titlesize'] = 14
 
 ########################
-def kWTA2(cells, k):
+def kWTA(cells, k, argsorted=None):
     # n_active = max(int(sparsity * cells.size), 1)
-    winners = np.argsort(cells)[-k:]
+    if argsorted is not None:
+        winners = argsorted[-k:]
+    else:
+        winners = np.argsort(cells)[-k:]
     sdr = np.zeros(cells.shape, dtype=cells.dtype)
     sdr[winners] = 1
     return sdr
@@ -47,11 +50,11 @@ def get_theta(v_r, x, t_max):
     return np.argmin(error_th)
 
 
-def get_error_theta(x, w):
+def get_error_theta(x, w, theta_range):
     a_x = np.count_nonzero(x)
-    a_w = np.count_nonzero(w[0])
+    # a_w = np.count_nonzero(w[0])
 
-    theta_range = np.arange(1, np.min([a_x, a_w]) + 1)[::-1]
+    # theta_range = np.arange(1, np.min([a_x, a_w]) + 1)[::-1]
     a_y_range = np.zeros(theta_range.size, dtype=int)
     error = np.zeros(theta_range.size)
     for i, ti in enumerate(theta_range):
@@ -64,35 +67,37 @@ def get_error_theta(x, w):
             error[i] = np.dot(x, (1 - x_r)) + np.dot(x_r, (1 - x))
         else:
             error[i] = N_x
-
+    # print(a_y_range.size)
     return a_y_range, error
 
 
-def get_error_kwta(x, w):
-    a_y_range = np.arange(5, N_y - 5, 1)
-    a_x_range = np.arange(a_x - 10, a_x + 10, 1)
-    # error_kwta = np.zeros((a_y_range.size, a_x_range.size))
+def get_error_kwta(x, w, a_y_range):
+    a_x = np.count_nonzero(x)
+    a_x_step = 5
+    a_x_range = np.arange(a_x - a_x_step, a_x + a_x_step, 1)
     error_kwta = np.zeros(a_y_range.size)
+    overlap = w @ x
+    winners = np.argsort(overlap)
     for i, ai in enumerate(a_y_range):
-        y = kWTA2(w @ x, ai)
-        # x_r = kWTA2(w.T @ y, a_x)
+        y = kWTA(overlap, ai, winners)
+        # x_r2 = kWTA(w.T @ y, a_x)
         error_kwta2 = np.zeros(a_x_range.size)
         for j, axi in enumerate(a_x_range):
-            x_r = kWTA2(w.T @ y, axi)
-            error_kwta2[j] = np.dot(x, (1 - x_r)) + np.dot(x_r, (1 - x))
+            x_r = kWTA(w.T @ y, axi)
+            error_kwta2[j] = np.sum(np.abs(x - x_r))
         a_x_optimal = a_x_range[np.argmin(error_kwta2)]
-        # print(a_x_optimal)
-        x_r2 = kWTA2(w.T @ y, a_x_optimal)
-        error_kwta[i] = np.dot(x, (1 - x_r2)) + np.dot(x_r2, (1 - x))
-    # print(error_kwta)
-    return a_y_range,  error_kwta
+        x_r2 = kWTA(w.T @ y, a_x_optimal)
+        error_kwta[i] = np.sum(np.abs(x - x_r2))
+    return error_kwta
 
 def get_omp_opt(x, w):
+    a_x = np.count_nonzero(x)
     steps = w.shape[0]
     y = np.zeros(w.shape[0])
     r = np.copy(x)
     error = np.zeros(steps)
-    a_x_range = np.arange(a_x - 10, a_x + 10, 1)
+    a_x_step = 10
+    a_x_range = np.arange(a_x - a_x_step, a_x + a_x_step, 1)
     for k in range(steps):
         z = w @ r
         z[np.nonzero(y)[0]] = -100
@@ -100,12 +105,13 @@ def get_omp_opt(x, w):
         y[ind] = 1
         error_kwta2 = np.zeros(a_x_range.size)
         for j, axi in enumerate(a_x_range):
-            x_r = kWTA2(w.T @ y, axi)
-            error_kwta2[j] = np.dot(x, (1 - x_r)) + np.dot(x_r, (1 - x))
+            x_r = kWTA(w.T @ y, axi)
+            error_kwta2[j] = np.sum(np.abs(x - x_r))
         a_x_optimal = a_x_range[np.argmin(error_kwta2)]
-        x_r = kWTA2(w.T @ y, a_x_optimal)
+        # a_x_optimal = a_x
+        x_r = kWTA(w.T @ y, a_x_optimal)
         r = 2 * x - x_r
-        error[k] = np.dot(x, (1 - x_r)) + np.dot(x_r, (1 - x))
+        error[k] = np.sum(np.abs(x - x_r))
     return np.arange(steps), error
 
 
@@ -118,30 +124,61 @@ a_w = 30
 
 iters = 500
 a_y_range = np.arange(5, N_y - 5, 1)
-theta_range = np.arange(np.min([a_x, a_w]))
-
-a_y_range_dt = np.zeros((iters, a_y_range.size))
 error_kwta = np.zeros((iters, a_y_range.size))
+
 
 a_y_range_omp = np.arange(N_y)
 error_omp = np.zeros((iters, N_y))
 
+theta_range = np.arange(1, np.min([a_x, a_w]) + 5)
 a_y_range_thr = np.zeros((iters, theta_range.size))
 error_threshold = np.zeros((iters, theta_range.size))
 
+
+import time
+t = time.time()
 w = generate_random_matrix(N_y, N_x, a_w)
+# w = np.random.binomial(1, float(a_w)/N_x, size=(N_y, N_x))
+# plt.hist(np.count_nonzero(w, axis=0))
+# plt.show()
+# quit()
 for i in range(iters):
     print(i)
     x = generate_random_vector(N_x, a_x)
-    a_y_range_dt[i], error_kwta[i] = get_error_kwta(x, w)
-    a_y_range_thr[i], error_threshold[i] = get_error_theta(x, w)
+    error_kwta[i] = get_error_kwta(x, w, a_y_range)
+    a_y_range_thr[i], error_threshold[i] = get_error_theta(x, w, theta_range)
     _, error_omp[i] = get_omp_opt(x, w)
 
+# print('new')
 
+# quit()
 
 plt.plot(a_y_range / N_y, np.mean(error_kwta, axis=0) / N_x, linestyle='-',  label='kWTA')
 plt.plot(np.mean(a_y_range_thr, axis=0) / N_y, np.mean(error_threshold, axis=0) / N_x, linestyle='--', marker='o', markerfacecolor='k',  label='Threshold')
 plt.plot(a_y_range_omp / N_y, np.mean(error_omp, axis=0) / N_x, linestyle='-.',  label='BMP')
+
+
+N_x = 50
+N_y = 2000
+
+a_x = 20
+a_w = 30
+
+a_y_range = np.arange(5, N_y - 5, 10)
+error_kwta = np.zeros((iters, a_y_range.size))
+
+w = generate_random_matrix(N_y, N_x, a_w)
+# w = np.random.binomial(1, float(a_w)/N_x, size=(N_y, N_x))
+
+for i in range(iters):
+    print(i)
+    x = generate_random_vector(N_x, a_x)
+    error_kwta[i] = get_error_kwta(x, w, a_y_range)
+
+
+print('Time: ', time.time() - t)
+plt.plot(a_y_range / N_y, np.mean(error_kwta, axis=0) / N_x, linestyle='-',  label='kWTA 2000')
+
 plt.xlabel(r'$s_y$')
 plt.ylabel(r'Error')
 plt.xlim([0, 1])
@@ -149,4 +186,3 @@ plt.ylim([0, 0.4])
 plt.legend()
 plt.savefig('figures/error_vs_ay_all', bbox_inches='tight')
 plt.show()
-
